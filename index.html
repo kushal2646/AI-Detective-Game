@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI Detective — solve mysteries with AI-powered interviews, clues, and logic puzzles.">
+  <meta name="theme-color" content="#0c0b0f">
+  <title>AI Detective — Mystery Puzzle Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+  <div class="ambient-glow" aria-hidden="true"></div>
+  <div id="app">
+
+    <section class="screen active" id="home" aria-label="Home">
+      <header class="home-hero">
+        <p class="eyebrow">Bureau of Unsolved Cases</p>
+        <h1 class="home-title">AI <span>Detective</span></h1>
+        <p class="home-sub">Investigate · Interrogate · Accuse — powered by generative AI</p>
+        <div class="home-actions">
+          <button type="button" class="btn btn-primary btn-lg" onclick="showScreen('levelSelect')">
+            <span class="btn-icon" aria-hidden="true">📁</span>
+            Open Case Files
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="openApiSettings()" id="settingsBtn">API Settings</button>
+        </div>
+        <ul class="feature-pills" aria-label="Game features">
+          <li><span aria-hidden="true">🔍</span> Investigate scenes</li>
+          <li><span aria-hidden="true">💬</span> AI suspect chat</li>
+          <li><span aria-hidden="true">⚖️</span> Make your accusation</li>
+        </ul>
+      </header>
+      <footer class="home-footer">
+        <span class="stamp">CLASSIFIED</span>
+        <span>Level-based investigation · Progress saved locally</span>
+      </footer>
+    </section>
+
+    <section class="screen" id="levelSelect" aria-label="Case selection">
+      <div class="page-shell">
+        <nav class="top-bar">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="showScreen('home')">← Home</button>
+          <span class="top-bar-brand">Case Files</span>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openApiSettings()">Settings</button>
+        </nav>
+        <header class="page-header">
+          <h2 class="page-title">Select a Case</h2>
+          <p class="page-desc">Each investigation unlocks the next. Question every suspect and follow the evidence.</p>
+        </header>
+        <div class="levels-grid" id="levelsGrid" role="list"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="investigation" aria-label="Investigation">
+      <header class="inv-header">
+        <div class="inv-header-main">
+          <p class="inv-level" id="invLevelNum">LEVEL 1</p>
+          <h2 class="inv-title" id="invTitle">Loading...</h2>
+        </div>
+        <div class="inv-stats" role="group" aria-label="Case statistics">
+          <div class="stat-card" id="timerStat">
+            <span class="stat-val" id="timerVal">--:--</span>
+            <span class="stat-lbl">Time left</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="scoreVal">0</span>
+            <span class="stat-lbl">Score</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-val" id="cluesVal">0/0</span>
+            <span class="stat-lbl">Clues</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-danger" onclick="showAccuse()">⚖️ Accuse</button>
+      </header>
+      <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="inv-body">
+        <main class="inv-main" id="invMain">
+          <article class="panel story-panel">
+            <header class="panel-head">
+              <span class="panel-label">Case Report</span>
+            </header>
+            <div class="story-box" id="storyBox">
+              <p class="placeholder">Loading crime scene report...</p>
+            </div>
+          </article>
+          <section class="panel" aria-labelledby="suspectsHeading">
+            <header class="panel-head">
+              <h3 class="panel-title" id="suspectsHeading">Suspects</h3>
+            </header>
+            <div class="suspects-grid" id="suspectsGrid"></div>
+          </section>
+          <section class="panel" aria-labelledby="cluesHeading">
+            <header class="panel-head">
+              <h3 class="panel-title" id="cluesHeading">Crime Scene</h3>
+            </header>
+            <div class="clues-grid" id="cluesGrid"></div>
+          </section>
+          <div class="action-row">
+            <button type="button" class="btn btn-secondary" onclick="openPuzzle()">🧩 Solve Puzzle</button>
+            <button type="button" class="btn btn-secondary" onclick="getHint()" id="hintBtn">💡 AI Hint</button>
+            <button type="button" class="btn btn-ghost" onclick="showScreen('levelSelect')">Exit Case</button>
+          </div>
+        </main>
+        <aside class="inv-sidebar">
+          <section class="sidebar-card">
+            <h3 class="sidebar-title">Evidence Board</h3>
+            <div id="evidenceBoard" class="evidence-list">
+              <p class="placeholder-sm">No evidence collected yet.</p>
+            </div>
+          </section>
+          <section class="sidebar-card">
+            <h3 class="sidebar-title">Detective Notes</h3>
+            <div class="notebook" id="notebook">Begin investigating to uncover clues...</div>
+          </section>
+          <section class="sidebar-card">
+            <h3 class="sidebar-title">AI Partner</h3>
+            <div class="hint-box empty" id="hintBox">Request a hint when you're stuck — costs 100 points.</div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="chatScreen" aria-label="Suspect interview">
+      <header class="chat-header">
+        <div class="chat-suspect">
+          <div class="chat-avatar" id="chatAvatar" aria-hidden="true">👤</div>
+          <div>
+            <h2 class="chat-name" id="chatName">Suspect</h2>
+            <p class="chat-role" id="chatRole">Interview in progress</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="showScreen('investigation')">← Back to Scene</button>
+      </header>
+      <div class="chat-messages" id="chatMessages" role="log" aria-live="polite"></div>
+      <form class="chat-input-row" onsubmit="event.preventDefault(); sendChat();">
+        <input class="chat-input" id="chatInput" type="text" placeholder="Ask your question..." autocomplete="off" aria-label="Your question">
+        <button type="submit" class="btn btn-primary" id="chatSendBtn">Send</button>
+      </form>
+    </section>
+
+    <section class="screen" id="accuseScreen" aria-label="Make accusation">
+      <div class="page-shell page-shell--narrow">
+        <header class="page-header page-header--center">
+          <p class="eyebrow eyebrow--danger">Final Decision</p>
+          <h2 class="page-title page-title--danger">Make Your Accusation</h2>
+          <p class="page-desc">Choose carefully. A wrong accusation ends the investigation.</p>
+        </header>
+        <div class="accuse-grid" id="accuseGrid"></div>
+        <div class="action-row action-row--center">
+          <button type="button" class="btn btn-ghost" onclick="showScreen('investigation')">← Return to Scene</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen" aria-label="Case result">
+      <div class="result-card">
+        <div class="result-icon" id="resultIcon" aria-hidden="true">🔍</div>
+        <h2 class="result-title" id="resultTitle">Case Closed</h2>
+        <p class="result-msg" id="resultMsg">...</p>
+        <div class="result-score-wrap">
+          <div class="result-score" id="resultScore">0</div>
+          <p class="result-score-lbl">Points earned</p>
+        </div>
+        <div class="result-btns" id="resultBtns"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <dialog class="modal" id="puzzleModal" aria-labelledby="puzzleModalTitle">
+    <div class="modal-backdrop" onclick="closePuzzle()"></div>
+    <div class="modal-card">
+      <header class="modal-header">
+        <h2 class="modal-title" id="puzzleModalTitle">🧩 Crime Scene Puzzle</h2>
+        <p class="modal-sub" id="puzzleSub">Solve this puzzle to unlock a critical clue.</p>
+      </header>
+      <div class="modal-q" id="puzzleQ">Loading puzzle...</div>
+      <div id="puzzleOptions" class="options-grid"></div>
+      <footer class="modal-footer" id="puzzleBtns">
+        <button type="button" class="btn btn-ghost" onclick="closePuzzle()">Close</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="apiModal" aria-labelledby="apiModalTitle">
+    <div class="modal-backdrop" onclick="closeApiModal()"></div>
+    <div class="modal-card">
+      <header class="modal-header">
+        <h2 class="modal-title" id="apiModalTitle">🔑 Connect AI Partner</h2>
+        <p class="modal-sub">Enter your Anthropic API key for AI-generated stories, suspect dialogue, and hints. Stored locally in your browser only.</p>
+      </header>
+      <label class="field-label" for="apiKeyInput">API Key</label>
+      <input class="field-input" id="apiKeyInput" type="password" placeholder="sk-ant-..." autocomplete="off">
+      <footer class="modal-footer modal-footer--stack">
+        <button type="button" class="btn btn-primary" onclick="saveApiKey()">Save & Enable AI</button>
+        <button type="button" class="btn btn-ghost" onclick="closeApiModal()">Continue in Demo Mode</button>
+      </footer>
+      <p class="modal-footnote">Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></p>
+    </div>
+  </dialog>
+
+  <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite" aria-busy="true">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <p class="loading-text" id="loadingText">Investigating...</p>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="static/js/levels.js"></script>
+  <script src="static/js/game.js"></script>
+</body>
+</html>
